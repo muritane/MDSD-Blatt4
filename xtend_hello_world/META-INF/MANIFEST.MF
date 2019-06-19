@@ -1,8 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Blatt4
-Bundle-SymbolicName: blatt4
+Bundle-SymbolicName: xtend_hello_world
 Bundle-Version: 1.0.0.qualifier
 Automatic-Module-Name: blatt4
 Bundle-RequiredExecutionEnvironment: JavaSE-11
-Import-Package: org.eclipse.xtend2.lib;version="2.18.0"
+Import-Package: com.google.inject,
+ org.eclipse.xtend2.lib;version="2.18.0"
