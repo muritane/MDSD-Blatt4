@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Blatt4
+Bundle-SymbolicName: blatt4
+Bundle-Version: 1.0.0.qualifier
+Automatic-Module-Name: blatt4
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Import-Package: com.google.inject,
+ org.eclipse.emf.ecore,
+ org.eclipse.emf.ecore.resource,
+ org.eclipse.emf.ecore.resource.impl,
+ org.eclipse.xtend2.lib;version="2.18.0",
+ org.eclipse.xtext.generator,
+ org.eclipse.xtext.resource.generic
