@@ -18,6 +18,7 @@ public class Blatt1GeneratorModule extends AbstractGenericResourceRuntimeModule 
         return "types";
     }
  
+//    public Class<? extends AbstractGenerator> bindIGenerator() {
     public Class<? extends IGenerator> bindIGenerator() {
         return Blatt1Generator.class;
     }
