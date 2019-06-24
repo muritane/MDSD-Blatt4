@@ -26,24 +26,65 @@ public class Blatt1Generator implements IGenerator {
   
   @Override
   public void doGenerate(final Resource resource, final IFileSystemAccess fsa) {
-    Iterable<blatt1.Repository.Types.Void> _filter = Iterables.<blatt1.Repository.Types.Void>filter(IteratorExtensions.<EObject>toIterable(resource.getAllContents()), blatt1.Repository.Types.Void.class);
-    for (final blatt1.Repository.Types.Void o : _filter) {
+    Iterable<Signature> _filter = Iterables.<Signature>filter(IteratorExtensions.<EObject>toIterable(resource.getAllContents()), Signature.class);
+    for (final Signature o : _filter) {
       fsa.generateFile(
-        "void.java", 
+        "RemoveLater.java", 
         this.compile(o));
     }
   }
   
-  protected CharSequence _compile(final Signature s) {
+  public CharSequence compile(final Signature s) {
     StringConcatenation _builder = new StringConcatenation();
-    _builder.append("    \t");
+    _builder.append("public class RemoveLater {");
     _builder.newLine();
+    _builder.append("\t");
+    _builder.append("public ");
+    CharSequence _compile = this.compile(s.getReturnType());
+    _builder.append(_compile, "\t");
+    _builder.append(" ");
+    String _name = s.getName();
+    _builder.append(_name, "\t");
+    _builder.append("(");
+    {
+      EList<Type> _parameterType = s.getParameterType();
+      for(final Type p : _parameterType) {
+        {
+          boolean _contains = p.toString().contains("Void");
+          boolean _not = (!_contains);
+          if (_not) {
+            CharSequence _compile_1 = this.compile(p);
+            _builder.append(_compile_1, "\t");
+          }
+        }
+      }
+    }
+    _builder.append(") {");
+    _builder.newLineIfNotEmpty();
+    _builder.append("\t\t");
+    _builder.append("// TODO: Insert code here");
+    _builder.newLine();
+    _builder.append("\t");
+    _builder.append("}");
+    _builder.newLine();
+    _builder.append("}");
+    return _builder;
+  }
+  
+  public CharSequence compile(final Type m) {
+    StringConcatenation _builder = new StringConcatenation();
+    {
+      boolean _contains = m.toString().contains("Void");
+      if (_contains) {
+        _builder.append("void");
+      }
+    }
     return _builder;
   }
   
   public CharSequence compile(final blatt1.Repository.Types.Void m) {
     StringConcatenation _builder = new StringConcatenation();
-    _builder.append("System.out.println(\"void\");");
+    _builder.append("void");
     _builder.newLine();
     return _builder;
   }
@@ -100,10 +141,6 @@ public class Blatt1Generator implements IGenerator {
   }
   
   protected void _compile(final EObject m, final IFileSystemAccess fsa) {
-  }
-  
-  public CharSequence compile(final Signature s) {
-    return _compile(s);
   }
   
   public void compile(final EObject m, final IFileSystemAccess fsa) {

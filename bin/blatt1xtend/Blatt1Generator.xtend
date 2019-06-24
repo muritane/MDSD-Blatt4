@@ -13,6 +13,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import com.google.inject.Inject
 import blatt1.Repository.Interface
+import blatt1.Repository.Types.Type
 
 //class Blatt1Generator extends AbstractGenerator {
 class Blatt1Generator implements IGenerator {
@@ -21,10 +22,10 @@ class Blatt1Generator implements IGenerator {
     
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 //        for (EObject o : resource.contents) {
-        for (o : resource.allContents.toIterable.filter(Void)) {
+        for (o : resource.allContents.toIterable.filter(Signature)) {
         	fsa.generateFile(
 //        		o.fullyQualifiedName.toString("/") + ".java",
-				"void.java",
+				"RemoveLater.java",
         		o.compile)
         }
     }
@@ -51,12 +52,17 @@ class Blatt1Generator implements IGenerator {
 //        }
 //    '''
  
-    def dispatch compile(Signature s) '''
-    	
-    '''
+    def compile(Signature s) '''public class RemoveLater {
+	public «s.returnType.compile» «s.name»(«FOR p : s.parameterType»«IF !p.toString().contains("Void")»«p.compile»«ENDIF»«ENDFOR») {
+		// TODO: Insert code here
+	}
+}'''
+    
+    def compile(Type m) '''«IF m.toString().contains("Void")»void«ENDIF»'''
+    
     
     def compile(Void m) '''
-    	System.out.println("void");
+    	void
     '''
     
     def compile(Component c) '''
