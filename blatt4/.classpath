@@ -9,7 +9,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="main/xtext"/>
 	<classpathentry kind="src" path="main/xtend-gen"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Blatt1">
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/Blatt1">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
