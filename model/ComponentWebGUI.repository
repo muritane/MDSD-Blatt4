@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<repository:Component xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:repository="http://www.example.org/blatt1/repository" name="WebGUI">
+  <providedInterface name="HTTP">
+    <signature name="HTTPDownload">
+      <returnType href="My.types#/"/>
+      <parameterType href="My.types#/"/>
+    </signature>
+    <signature name="HTTPUpload">
+      <returnType href="My.types#/"/>
+      <parameterType href="My.types#/"/>
+    </signature>
+  </providedInterface>
+  <providedService name="HTTP">
+    <correspondingSignature name="HTTPDownload">
+      <returnType href="My.types#/"/>
+      <parameterType href="My.types#/"/>
+    </correspondingSignature>
+    <correspondingSignature name="HTTPUpload">
+      <returnType href="My.types#/"/>
+      <parameterType href="My.types#/"/>
+    </correspondingSignature>
+  </providedService>
+  <requiredInterface href="InterfaceMediaStore.repository#/"/>
+  <requiredService href="MediaStoreService.repository#/"/>
+</repository:Component>

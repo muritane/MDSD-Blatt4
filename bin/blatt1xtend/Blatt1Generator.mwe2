@@ -1,0 +1,36 @@
+module abc.xtendpackage.Blatt1Generator
+
+import org.eclipse.emf.mwe.utils.*
+
+var targetDir = "src-gen"
+var modelPath = "model"
+ 
+Workflow {
+ 
+    bean = StandaloneSetup {
+//        registerGeneratedEPackage = "ABC.ABCPackage"
+		registerGeneratedEPackage = "blatt1.Blatt1Package"
+    }
+ 
+    component = DirectoryCleaner {
+        directory = targetDir
+    }
+ 
+    component = blatt1xtend.Blatt1GeneratorSupport {}
+ 
+    component = org.eclipse.xtext.mwe.Reader {
+        path = modelPath
+        register = blatt1xtend.Blatt1GeneratorSetup {}
+        loadResource = {
+            slot = "model"
+        }
+    }
+ 
+    component = org.eclipse.xtext.generator.GeneratorComponent {
+        register = blatt1xtend.Blatt1GeneratorSetup {}
+        slot = 'model'
+        outlet = {
+            path = targetDir
+        }
+    }
+}
