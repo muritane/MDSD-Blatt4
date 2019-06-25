@@ -49,7 +49,7 @@ class Blatt1Generator implements IGenerator {
             package «e.eContainer.fullyQualifiedName»;
         «ENDIF»
         
-        public class «e.name» 
+        public interface «e.name» 
         {
             «FOR f : e.signature»
                 «f.compile»
@@ -57,70 +57,61 @@ class Blatt1Generator implements IGenerator {
         }
     '''
  
-    def compile(Signature s) '''public class RemoveLater {
+    def compile(Signature s) '''
 	public «s.returnType.compile» «s.name»(«FOR p : s.parameterType»«IF !p.toString().contains("Void")»«p.compile»«ENDIF»«ENDFOR») {
 		// TODO: Insert code here
 	}
-}'''
+	'''
     
     def compile(Type m) '''«IF m.toString().contains("Void")»void«ENDIF»'''
     
     
     def compile(Void m) '''
-    	void
-    '''
-    
-    //helping function for compiling components and composite components
-    def compileComponent(Component c) '''
-    	«FOR pi : c.providedInterface»
-			«pi.compile» //interface compile wieder einführen - warum auskommentiert?
-		«ENDFOR»
-		«FOR ri : c.requiredInterface»
-			«ri.compile» //interface compile wieder einführen - warum auskommentiert?
-		«ENDFOR»
-		«FOR ps : c.providedService»
-			«ps.compile»
-		«ENDFOR»
-		«FOR rs : c.requiredService»
-			«rs.compile»
-		«ENDFOR»
-		«c.behaviourDescription.compile»
-		«IF c.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit c.name?
-            package «c.eContainer.fullyQualifiedName»;
-        «ENDIF»
-    '''
-    
-    def compile(CompositeComponent c) '''
-    	public class «c.name» //TODO WARNING sollte das wirklich so sein? siehe behaviour description: es sollte doch nicht jede INSTANZ eine eige KLASSE haben, oder?
-    	{
-    		«compileComponent(c)»
-    		«FOR a : c.encapsulatedAssemblyContext»
-				«a.compile»
-			«ENDFOR»
-    	}
+    	voidS
     '''
     
     def compile(Component c) '''
-    	public class «c.name»
+    	«IF c.eContainer.fullyQualifiedName !== null»
+	        package «c.eContainer.fullyQualifiedName»;
+        «ENDIF»
+    	public class «c.name» implements
+    	«FOR pi : c.providedInterface» //loop for all implemented Interfaces
+    		«pi.name»
+			«IF pi != c.providedInterface.last»
+			,
+			«ENDIF»
+		«ENDFOR»
     	{
-    		«compileComponent(c)»
+			«FOR ri : c.requiredInterface»
+				«ri.compile» //interface compile wieder einführen - warum auskommentiert?
+			«ENDFOR»
+			«FOR ps : c.providedService»
+				«ps.compile»
+			«ENDFOR»
+			«FOR rs : c.requiredService»
+				«rs.compile»
+			«ENDFOR»
+			«c.behaviourDescription.compile»
     	}
     	System.out.println("Component");
     '''
     
     def compile(Service s) '''
+		«IF s.eContainer.fullyQualifiedName !== null»
+            package «s.eContainer.fullyQualifiedName»;
+        «ENDIF»
     	public class «s.name»
     	{
 	    	«FOR sign : s.correspondingSignature»
 				«sign.compile»
 			«ENDFOR»
-			«IF s.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit s.name?
-	            package «s.eContainer.fullyQualifiedName»;
-	        «ENDIF»
 	    }
     '''
     
     def compile(BehaviorDescription b)'''
+    	«IF b.eContainer.fullyQualifiedName !== null»
+            package «b.eContainer.fullyQualifiedName»;
+        «ENDIF»
     	public class BehaviorDescription //TODO WARNING - hat keinen namen -> kann nicht nach namen benannt werden -> siehe TODO WARNING oben - INSTANZ namen als KLASSEN namen?
     	{
 		    «FOR s : b.calledServices»
@@ -131,6 +122,9 @@ class Blatt1Generator implements IGenerator {
     '''
     
     def compile (System s)'''
+    	«IF s.eContainer.fullyQualifiedName !== null»
+            package «s.eContainer.fullyQualifiedName»;
+        «ENDIF»
     	public class System
     	{
     		«FOR ac : s.encapsulatedAssemblyContext»
@@ -139,26 +133,26 @@ class Blatt1Generator implements IGenerator {
 			«FOR pi : s.providedInterfaces»
 				«pi.compile»
 			«ENDFOR»
-			«IF s.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit s.name?
-	            package «s.eContainer.fullyQualifiedName»;
-	        «ENDIF»
     	}
     '''
     
     def compile (AssemblyConnector a)'''
+		«IF a.eContainer.fullyQualifiedName !== null»
+            package «a.eContainer.fullyQualifiedName»;
+        «ENDIF»
     	public class AssemblyConnector
     	{
     		«a.providedAssemblyContext.compile»
     		«a.requiredAssemblyContext.compile»
     		«a.requiredRole.compile»
     		«a.providedRole.compile»
-    		«IF a.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit s.name?
-	            package «a.eContainer.fullyQualifiedName»;
-	        «ENDIF»
     	}
     '''
     
     def compile (AssemblyContext a)'''
+		«IF a.eContainer.fullyQualifiedName !== null»
+            package «a.eContainer.fullyQualifiedName»;
+        «ENDIF»
     	public class «a.name»
     	{
 	    	«FOR rr : a.requiredRole»
@@ -169,33 +163,34 @@ class Blatt1Generator implements IGenerator {
 			«ENDFOR»
 			«a.component.compile»
 			«a.allocationContext.compile»
-			«IF a.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit s.name?
-	            package «a.eContainer.fullyQualifiedName»;
-	        «ENDIF»
 	    }
     '''
     
     def compile (Role r)'''
+	    «IF r.eContainer.fullyQualifiedName !== null»
+	        package «r.eContainer.fullyQualifiedName»;
+	    «ENDIF»
     	public class «r.name»
     	{
-    		«IF r.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit s.name?
-	            package «r.eContainer.fullyQualifiedName»;
-	        «ENDIF»
+
     	}
     '''
     
     def compile (DelegationConnector d)'''
+		«IF d.eContainer.fullyQualifiedName !== null»
+            package «d.eContainer.fullyQualifiedName»;
+        «ENDIF»
     	public class DelegationConnector
     	{
     		«d.role.compile»
     		«d.interface.compile»
-			«IF d.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit s.name?
-	            package «d.eContainer.fullyQualifiedName»;
-	        «ENDIF»
     	}
     '''
     
     def compile (Allocation a)'''
+	 	«IF a.eContainer.fullyQualifiedName !== null»
+            package «a.eContainer.fullyQualifiedName»;
+        «ENDIF»
     	 public class Allocation
     	 {
     	 	«a.system.compile»
@@ -203,13 +198,13 @@ class Blatt1Generator implements IGenerator {
     	 	«FOR ac : a.allocationContexts»
 				«ac.compile»
 			«ENDFOR»
-    	 	«IF a.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit s.name?
-	            package «a.eContainer.fullyQualifiedName»;
-	        «ENDIF»
     	 }
     '''
     
     def compile (AllocationContext a)'''
+		«IF a.eContainer.fullyQualifiedName !== null»
+            package «a.eContainer.fullyQualifiedName»;
+        «ENDIF»
     	public class AllocationContext
     	{
     		«FOR tc : a.targetContainer»
@@ -218,37 +213,37 @@ class Blatt1Generator implements IGenerator {
 			«FOR ac : a.allocatedAssemblyContext»
 				«ac.compile»
 			«ENDFOR»
-			«IF a.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit s.name?
-	            package «a.eContainer.fullyQualifiedName»;
-	        «ENDIF»
     	}
     '''
     
     def compile (Container c)'''
+		«IF c.eContainer.fullyQualifiedName !== null»
+			package «c.eContainer.fullyQualifiedName»;
+        «ENDIF»
     	public class «c.name»
-    	    	{
-    	    		«FOR l : c.links»
-    					«l.compile»
-    				«ENDFOR»
-    				«IF c.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit s.name?
-			            package «c.eContainer.fullyQualifiedName»;
-			        «ENDIF»
-    	    	}
+    	{
+    		«FOR l : c.links»
+				«l.compile»
+			«ENDFOR»
+    	}
     '''
     
     def compile (Link l)'''
+		«IF l.eContainer.fullyQualifiedName !== null»
+            package «l.eContainer.fullyQualifiedName»;
+        «ENDIF»
 	    public class «l.name»
     	{
     		«FOR c : l.linkedContainers»
 				«l.compile»
 			«ENDFOR»
-			«IF l.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit s.name?
-	            package «l.eContainer.fullyQualifiedName»;
-	        «ENDIF»
     	}
     '''
     
     def compile (Environment e)'''
+		«IF e.eContainer.fullyQualifiedName !== null»
+            package «e.eContainer.fullyQualifiedName»;
+        «ENDIF»
 	    public class Environment
     	{
     		«FOR c : e.container»
@@ -256,47 +251,9 @@ class Blatt1Generator implements IGenerator {
 			«ENDFOR»
 			«FOR l : e.link»
 				«l.compile»
-			«ENDFOR»
-			«IF e.eContainer.fullyQualifiedName !== null» //alles was für den Namen gebraucht wird? was mit s.name?
-	            package «e.eContainer.fullyQualifiedName»;
-	        «ENDIF»
+			«ENDFOR»»
     	}
     '''
-    
-//    def dispatch void compile(Void m, IFileSystemAccess fsa) {
-//    	fsa.generateFile("void.txt", '''
-//		        this is element «"void"»
-//		        ''')
-//    }
-    
-    def dispatch void compile(Signature m, IFileSystemAccess fsa) {
-    	m.returnType.compile(fsa);
-    	for (EObject o : m.parameterType) {
-            o.compile(fsa)
-        }
-        fsa.generateFile(m.name+".txt", '''
-		        this is element «m.name»
-		        ''')
-    }
- 
-    def dispatch void compile(Component m, IFileSystemAccess fsa) {
-		m.behaviourDescription.compile(fsa);
-		for (EObject o : m.providedInterface) {
-            o.compile(fsa)
-        }
-		for (EObject o : m.providedService) {
-            o.compile(fsa)
-        }
-		for (EObject o : m.requiredInterface) {
-            o.compile(fsa)
-        }
-		for (EObject o : m.requiredService) {
-            o.compile(fsa)
-        }
-		fsa.generateFile(m.name+".txt", '''
-		        this is element «m.name»
-		        ''')
-    }
  
     def dispatch void compile(EObject m, IFileSystemAccess fsa) { }
  
