@@ -27,10 +27,11 @@ class Blatt1Generator implements IGenerator {
     
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 //        for (EObject o : resource.contents) {
-        for (o : resource.allContents.toIterable.filter(Signature)) {
+        for (o : resource.allContents.toIterable.filter(Interface)) { 
+        //Signaturen & Parameter/Return werte sollten automatisch folgen, da deren Kompilierung "rekursiv" aufgerufen wid.
         	fsa.generateFile(
-//        		o.fullyQualifiedName.toString("/") + ".java",
-				"RemoveLater.java",
+        		o.fullyQualifiedName.toString("/") + ".java",
+				//"RemoveLater.java",
         		o.compile)
         }
     }
@@ -82,8 +83,34 @@ class Blatt1Generator implements IGenerator {
 			«ENDIF»
 		«ENDFOR»
     	{
+    		«««//überflüssig: wurde zuvor schon generiert - stattdessen methodenrümpfe für interfaces generieren
+			«««»»«FOR pi : c.providedInterface»
+			«««»	«pi.compile»
+			«««»«ENDFOR
+			«««»»«FOR ri : c.requiredInterface»
+			«««»	«ri.compile»
+			«««»«ENDFOR»
+			«FOR pi : c.providedInterface» «««TODO WARNING was für provided, was für required? siehe Aufgabe 4 B
+				«««»»//«pi.name»
+				«FOR s : pi.signature»
+					//«pi.name»
+					@Override
+					public «s.returnType» «s.name» (
+					«FOR p : s.parameterType» //loop for all parameters of the method
+			    		«««»«p.name» TODO catch this somehow, also define a unique name
+			    		«««»«s.parameterType.index(p)» irgend sowas für eindeutigen namen für parameter?
+						«IF p != s.parameterType.last»
+						,
+						«ENDIF»
+					«ENDFOR»
+				«ENDFOR»
+			«ENDFOR»
 			«FOR ri : c.requiredInterface»
-				«ri.compile» //interface compile wieder einführen - warum auskommentiert?
+				//«ri.name»
+				«FOR s : ri.signature»
+					«s.returnType» «s.name»;
+					public set«s.name» ( «s.returnType» «s.name»){ this.«s.name» = «s.name»;}
+				«ENDFOR»
 			«ENDFOR»
 			«FOR ps : c.providedService»
 				«ps.compile»

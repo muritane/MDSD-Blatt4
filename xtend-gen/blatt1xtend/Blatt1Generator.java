@@ -38,10 +38,11 @@ public class Blatt1Generator implements IGenerator {
   
   @Override
   public void doGenerate(final Resource resource, final IFileSystemAccess fsa) {
-    Iterable<Signature> _filter = Iterables.<Signature>filter(IteratorExtensions.<EObject>toIterable(resource.getAllContents()), Signature.class);
-    for (final Signature o : _filter) {
-      fsa.generateFile(
-        "RemoveLater.java", 
+    Iterable<Interface> _filter = Iterables.<Interface>filter(IteratorExtensions.<EObject>toIterable(resource.getAllContents()), Interface.class);
+    for (final Interface o : _filter) {
+      String _string = this._iQualifiedNameProvider.getFullyQualifiedName(o).toString("/");
+      String _plus = (_string + ".java");
+      fsa.generateFile(_plus, 
         this.compile(o));
     }
   }
@@ -184,32 +185,100 @@ public class Blatt1Generator implements IGenerator {
     _builder.append("{");
     _builder.newLine();
     {
+      EList<Interface> _providedInterface_1 = c.getProvidedInterface();
+      for(final Interface pi_1 : _providedInterface_1) {
+        {
+          EList<Signature> _signature = pi_1.getSignature();
+          for(final Signature s : _signature) {
+            _builder.append("//");
+            String _name_2 = pi_1.getName();
+            _builder.append(_name_2);
+            _builder.newLineIfNotEmpty();
+            _builder.append("@Override");
+            _builder.newLine();
+            _builder.append("public ");
+            Type _returnType = s.getReturnType();
+            _builder.append(_returnType);
+            _builder.append(" ");
+            String _name_3 = s.getName();
+            _builder.append(_name_3);
+            _builder.append(" (");
+            _builder.newLineIfNotEmpty();
+            {
+              EList<Type> _parameterType = s.getParameterType();
+              for(final Type p : _parameterType) {
+                _builder.append(" //loop for all parameters of the method");
+                _builder.newLineIfNotEmpty();
+                {
+                  Type _last_1 = IterableExtensions.<Type>last(s.getParameterType());
+                  boolean _notEquals_1 = (!Objects.equal(p, _last_1));
+                  if (_notEquals_1) {
+                    _builder.append(",");
+                    _builder.newLine();
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    {
       EList<Interface> _requiredInterface = c.getRequiredInterface();
       for(final Interface ri : _requiredInterface) {
-        CharSequence _compile = this.compile(ri);
-        _builder.append(_compile);
-        _builder.append(" //interface compile wieder einführen - warum auskommentiert?");
+        _builder.append("//");
+        String _name_4 = ri.getName();
+        _builder.append(_name_4);
         _builder.newLineIfNotEmpty();
+        {
+          EList<Signature> _signature_1 = ri.getSignature();
+          for(final Signature s_1 : _signature_1) {
+            Type _returnType_1 = s_1.getReturnType();
+            _builder.append(_returnType_1);
+            _builder.append(" ");
+            String _name_5 = s_1.getName();
+            _builder.append(_name_5);
+            _builder.append(";");
+            _builder.newLineIfNotEmpty();
+            _builder.append("public set");
+            String _name_6 = s_1.getName();
+            _builder.append(_name_6);
+            _builder.append(" ( ");
+            Type _returnType_2 = s_1.getReturnType();
+            _builder.append(_returnType_2);
+            _builder.append(" ");
+            String _name_7 = s_1.getName();
+            _builder.append(_name_7);
+            _builder.append("){ this.");
+            String _name_8 = s_1.getName();
+            _builder.append(_name_8);
+            _builder.append(" = ");
+            String _name_9 = s_1.getName();
+            _builder.append(_name_9);
+            _builder.append(";}");
+            _builder.newLineIfNotEmpty();
+          }
+        }
       }
     }
     {
       EList<Service> _providedService = c.getProvidedService();
       for(final Service ps : _providedService) {
-        CharSequence _compile_1 = this.compile(ps);
-        _builder.append(_compile_1);
+        CharSequence _compile = this.compile(ps);
+        _builder.append(_compile);
         _builder.newLineIfNotEmpty();
       }
     }
     {
       EList<Service> _requiredService = c.getRequiredService();
       for(final Service rs : _requiredService) {
-        CharSequence _compile_2 = this.compile(rs);
-        _builder.append(_compile_2);
+        CharSequence _compile_1 = this.compile(rs);
+        _builder.append(_compile_1);
         _builder.newLineIfNotEmpty();
       }
     }
-    CharSequence _compile_3 = this.compile(c.getBehaviourDescription());
-    _builder.append(_compile_3);
+    CharSequence _compile_2 = this.compile(c.getBehaviourDescription());
+    _builder.append(_compile_2);
     _builder.newLineIfNotEmpty();
     _builder.append("    \t");
     _builder.append("}");
