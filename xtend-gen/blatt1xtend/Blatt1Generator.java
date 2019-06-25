@@ -39,36 +39,67 @@ public class Blatt1Generator implements IGenerator {
   
   @Override
   public void doGenerate(final Resource resource, final IFileSystemAccess fsa) {
+    fsa.generateFile("repository/Helper.java", this.helper());
     Iterable<Interface> _filter = Iterables.<Interface>filter(IteratorExtensions.<EObject>toIterable(resource.getAllContents()), Interface.class);
     for (final Interface o : _filter) {
       String _string = this._iQualifiedNameProvider.getFullyQualifiedName(o).toString("/");
-      String _plus = (_string + ".java");
-      fsa.generateFile(_plus, 
+      String _plus = ("repository/" + _string);
+      String _plus_1 = (_plus + ".java");
+      fsa.generateFile(_plus_1, 
         this.compile(o));
     }
     Iterable<Component> _filter_1 = Iterables.<Component>filter(IteratorExtensions.<EObject>toIterable(resource.getAllContents()), Component.class);
     for (final Component o_1 : _filter_1) {
+      String _name = o_1.getName();
+      String _plus_2 = (_name + "/");
       String _string_1 = this._iQualifiedNameProvider.getFullyQualifiedName(o_1).toString("/");
-      String _plus_1 = (_string_1 + ".java");
-      fsa.generateFile(_plus_1, 
+      String _plus_3 = (_plus_2 + _string_1);
+      String _plus_4 = (_plus_3 + ".java");
+      fsa.generateFile(_plus_4, 
         this.compile(o_1));
     }
   }
   
+  public CharSequence helper() {
+    StringConcatenation _builder = new StringConcatenation();
+    _builder.append("package repository;");
+    _builder.newLine();
+    _builder.newLine();
+    _builder.append("import org.junit.Assert;");
+    _builder.newLine();
+    _builder.newLine();
+    _builder.append("public class Helper {");
+    _builder.newLine();
+    _builder.append("\t");
+    _builder.append("public static void assertNotNull(Object o) {");
+    _builder.newLine();
+    _builder.append("\t\t");
+    _builder.append("Assert.assertNotNull(o);");
+    _builder.newLine();
+    _builder.append("\t");
+    _builder.append("}");
+    _builder.newLine();
+    _builder.append("\t");
+    _builder.newLine();
+    _builder.append("\t");
+    _builder.append("public static void assertNull(Object o) {");
+    _builder.newLine();
+    _builder.append("\t\t");
+    _builder.append("Assert.assertNull(o);");
+    _builder.newLine();
+    _builder.append("\t");
+    _builder.append("}");
+    _builder.newLine();
+    _builder.append("}");
+    _builder.newLine();
+    return _builder;
+  }
+  
   public CharSequence compile(final Interface e) {
     StringConcatenation _builder = new StringConcatenation();
-    {
-      QualifiedName _fullyQualifiedName = this._iQualifiedNameProvider.getFullyQualifiedName(e.eContainer());
-      boolean _tripleNotEquals = (_fullyQualifiedName != null);
-      if (_tripleNotEquals) {
-        _builder.append("// package ");
-        QualifiedName _fullyQualifiedName_1 = this._iQualifiedNameProvider.getFullyQualifiedName(e.eContainer());
-        _builder.append(_fullyQualifiedName_1);
-        _builder.append(";");
-        _builder.newLineIfNotEmpty();
-        _builder.newLine();
-      }
-    }
+    _builder.append("package repository;");
+    _builder.newLine();
+    _builder.newLine();
     _builder.append("public interface ");
     String _name = e.getName();
     _builder.append(_name);
@@ -170,7 +201,7 @@ public class Blatt1Generator implements IGenerator {
   
   public CharSequence compile(final Component c) {
     StringConcatenation _builder = new StringConcatenation();
-    _builder.append("// package ");
+    _builder.append("package ");
     String _name = c.getName();
     _builder.append(_name);
     _builder.append(";");
@@ -179,7 +210,7 @@ public class Blatt1Generator implements IGenerator {
     {
       EList<Interface> _providedInterface = c.getProvidedInterface();
       for(final Interface pi : _providedInterface) {
-        _builder.append("// import ");
+        _builder.append("import repository.");
         String _name_1 = pi.getName();
         _builder.append(_name_1);
         _builder.append(";");
@@ -189,15 +220,21 @@ public class Blatt1Generator implements IGenerator {
     {
       EList<Interface> _requiredInterface = c.getRequiredInterface();
       for(final Interface ri : _requiredInterface) {
-        _builder.append("// import ");
+        _builder.append("import repository.");
         String _name_2 = ri.getName();
         _builder.append(_name_2);
         _builder.append(";");
         _builder.newLineIfNotEmpty();
       }
     }
-    _builder.append("// import Helper;");
-    _builder.newLine();
+    {
+      int _size = c.getRequiredInterface().size();
+      boolean _tripleNotEquals = (_size != 0);
+      if (_tripleNotEquals) {
+        _builder.append("import repository.Helper;");
+        _builder.newLine();
+      }
+    }
     _builder.append("        ");
     _builder.newLine();
     _builder.append("public class ");
@@ -215,7 +252,7 @@ public class Blatt1Generator implements IGenerator {
     _builder.append(_compileForComponentRequired, "\t");
     _builder.newLineIfNotEmpty();
     _builder.append("\t");
-    CharSequence _compileForComponentProvided = this.compileForComponentProvided(c.getProvidedInterface(), "TODO");
+    CharSequence _compileForComponentProvided = this.compileForComponentProvided(c.getProvidedInterface(), c.getRequiredInterface());
     _builder.append(_compileForComponentProvided, "\t");
     _builder.newLineIfNotEmpty();
     _builder.append("}");
@@ -244,10 +281,10 @@ public class Blatt1Generator implements IGenerator {
     return _builder;
   }
   
-  public CharSequence compileForComponentProvided(final EList<Interface> l, final String reqVar) {
+  public CharSequence compileForComponentProvided(final EList<Interface> pIfaces, final EList<Interface> rIfaces) {
     StringConcatenation _builder = new StringConcatenation();
     {
-      for(final Interface pi : l) {
+      for(final Interface pi : pIfaces) {
         {
           EList<Signature> _signature = pi.getSignature();
           for(final Signature s : _signature) {
@@ -271,11 +308,16 @@ public class Blatt1Generator implements IGenerator {
             _builder.append(_compile_1);
             _builder.append(") {");
             _builder.newLineIfNotEmpty();
-            _builder.append("\t");
-            _builder.append("// Helper.assertNotNull(this.");
-            _builder.append(reqVar, "\t");
-            _builder.append(");");
-            _builder.newLineIfNotEmpty();
+            {
+              for(final Interface ri : rIfaces) {
+                _builder.append("\t");
+                _builder.append("Helper.assertNotNull(this.");
+                String _firstLower = StringExtensions.toFirstLower(ri.getName());
+                _builder.append(_firstLower, "\t");
+                _builder.append(");");
+                _builder.newLineIfNotEmpty();
+              }
+            }
             _builder.append("\t");
             _builder.append("// TODO: Insert code here");
             _builder.newLine();
@@ -317,7 +359,7 @@ public class Blatt1Generator implements IGenerator {
         _builder.append("){ ");
         _builder.newLineIfNotEmpty();
         _builder.append("\t");
-        _builder.append("// Helper.assertNull(this.");
+        _builder.append("Helper.assertNull(this.");
         String _firstLower_2 = StringExtensions.toFirstLower(ri_1.getName());
         _builder.append(_firstLower_2, "\t");
         _builder.append(");");

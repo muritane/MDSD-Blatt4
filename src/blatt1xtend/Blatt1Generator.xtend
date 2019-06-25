@@ -31,30 +31,47 @@ class Blatt1Generator implements IGenerator {
     @Inject extension IQualifiedNameProvider
     
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+//    	String helper = "Helper".toString("/");
+    	fsa.generateFile("repository/Helper.java", helper());
 		for (o : resource.allContents.toIterable.filter(Interface)) { 
         	fsa.generateFile(
-        		o.fullyQualifiedName.toString("/") + ".java",
+        		"repository/" + o.fullyQualifiedName.toString("/") + ".java",
         		o.compile)
         }
         for (o : resource.allContents.toIterable.filter(Component)) { 
         	fsa.generateFile(
-        		o.fullyQualifiedName.toString("/") + ".java",
+        		o.name + "/" + o.fullyQualifiedName.toString("/") + ".java",
         		o.compile)
         }
     }
+    
+    def helper() '''
+		package repository;
+		
+		import org.junit.Assert;
+		
+		public class Helper {
+			public static void assertNotNull(Object o) {
+				Assert.assertNotNull(o);
+			}
+			
+			public static void assertNull(Object o) {
+				Assert.assertNull(o);
+			}
+		}
+	'''
+    
  
     def compile(Interface e) '''
-        «IF e.eContainer.fullyQualifiedName !== null»
-            // package «e.eContainer.fullyQualifiedName»;
-            
-        «ENDIF»
-        public interface «e.name» 
-        {
-            «FOR f : e.signature»
-                «f.compile»
-            «ENDFOR»
-        }
-    '''
+		package repository;
+		
+		public interface «e.name» 
+		{
+		    «FOR f : e.signature»
+		        «f.compile»
+		    «ENDFOR»
+		}
+	'''
  
     def compile(Signature s) '''
 		public «s.returnType.compile» «s.name»(«s.parameterType.compile»);
@@ -71,7 +88,7 @@ class Blatt1Generator implements IGenerator {
 		«ENDFOR»
 	'''
     
-    def compile(Type m) '''«IF m.toString().contains("Void")»void«ENDIF»'''
+	def compile(Type m) '''«IF m.toString().contains("Void")»void«ENDIF»'''
     
     
     def compile(Void m) '''
@@ -82,20 +99,22 @@ class Blatt1Generator implements IGenerator {
     	'''«FOR pi : l»«pi.name»«IF pi != l.last», «ENDIF»«ENDFOR»'''
 
     def compile(Component c) '''
-		// package «c.name»;
+		package «c.name»;
 		
        	«FOR pi : c.providedInterface»
-		// import «pi.name»;
+			import repository.«pi.name»;
 		«ENDFOR»
        	«FOR ri : c.requiredInterface»
-		// import «ri.name»;
+			import repository.«ri.name»;
 		«ENDFOR»
-		// import Helper;
+		«IF c.requiredInterface.size() !== 0»
+			import repository.Helper;
+        «ENDIF»
         
 		public class «c.name» implements «c.providedInterface.compileForComponent» {
 			
 			«c.requiredInterface.compileForComponentRequired»
-			«c.providedInterface.compileForComponentProvided("TODO")»
+			«c.providedInterface.compileForComponentProvided(c.requiredInterface)»
 		}
 «««		«FOR ps : c.providedService»
 «««				«ps.compile»
@@ -113,14 +132,16 @@ class Blatt1Generator implements IGenerator {
 	}
 	'''
     
-    def compileForComponentProvided(EList<Interface> l, String reqVar) '''
-		«FOR pi : l» «««TODO WARNING was für provided, was für required? siehe Aufgabe 4 B
+    def compileForComponentProvided(EList<Interface> pIfaces, EList<Interface> rIfaces) '''
+		«FOR pi : pIfaces» «««TODO WARNING was für provided, was für required? siehe Aufgabe 4 B
 			«««»»//«pi.name»
 			«FOR s : pi.signature»
 				// Implementing «s.name» from interface «pi.name»
 				@Override
 				public «s.returnType.compile» «s.name»(«s.parameterType.compile») {
-					// Helper.assertNotNull(this.«reqVar»);
+					«FOR ri : rIfaces»
+						Helper.assertNotNull(this.«ri.name.toFirstLower»);
+					«ENDFOR»
 					// TODO: Insert code here
 				}
 				
@@ -135,7 +156,7 @@ class Blatt1Generator implements IGenerator {
 		
 		«FOR ri : l»
 			public void set«ri.name»(«ri.name» «ri.name.toFirstLower»){ 
-				// Helper.assertNull(this.«ri.name.toFirstLower»);
+				Helper.assertNull(this.«ri.name.toFirstLower»);
 				this.«ri.name.toFirstLower» = «ri.name.toFirstLower»;
 			}
 			

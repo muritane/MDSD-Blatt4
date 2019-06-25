@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<repository:Interface xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:repository="http://www.example.org/blatt1/repository" name="Sound">
+  <signature name="watermark">
+    <returnType href="My.types#/"/>
+    <parameterType href="My.types#/"/>
+  </signature>
+</repository:Interface>
