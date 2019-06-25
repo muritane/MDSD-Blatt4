@@ -1,24 +1,29 @@
 package blatt1xtend
 
-import org.eclipse.xtext.generator.IGenerator
+import blatt1.Allocation.Allocation
+import blatt1.Allocation.AllocationContext
+import blatt1.Assembly.AssemblyConnector
+import blatt1.Assembly.AssemblyContext
+import blatt1.Assembly.DelegationConnector
+import blatt1.Assembly.Role
+import blatt1.Assembly.System
+import blatt1.Environment.Container
+import blatt1.Environment.Environment
+import blatt1.Environment.Link
+import blatt1.Repository.Behaviour.BehaviorDescription
+import blatt1.Repository.Component
+import blatt1.Repository.Interface
+import blatt1.Repository.Service
+import blatt1.Repository.Types.Signature
+import blatt1.Repository.Types.Type
+import blatt1.Repository.Types.Void
+import com.google.inject.Inject
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
-import org.eclipse.emf.ecore.EObject
-import blatt1.Repository.Component
-import blatt1.Repository.Types.Signature
-import blatt1.Repository.Types.Void
+import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.naming.IQualifiedNameProvider
-import org.eclipse.xtext.generator.AbstractGenerator
-import org.eclipse.xtext.generator.IFileSystemAccess2
-import org.eclipse.xtext.generator.IGeneratorContext
-import com.google.inject.Inject
-import blatt1.*
-import blatt1.Repository.*
-import blatt1.Repository.Types.*
-import blatt1.Repository.Behaviour.*
-import blatt1.Assembly.*
-import blatt1.Allocation.*
-import blatt1.Environment.*
+import org.eclipse.emf.common.util.EList
 
 //class Blatt1Generator extends AbstractGenerator {
 class Blatt1Generator implements IGenerator {
@@ -26,30 +31,23 @@ class Blatt1Generator implements IGenerator {
     @Inject extension IQualifiedNameProvider
     
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-//        for (EObject o : resource.contents) {
-        for (o : resource.allContents.toIterable.filter(Interface)) { 
-        //Signaturen & Parameter/Return werte sollten automatisch folgen, da deren Kompilierung "rekursiv" aufgerufen wid.
+		for (o : resource.allContents.toIterable.filter(Interface)) { 
         	fsa.generateFile(
         		o.fullyQualifiedName.toString("/") + ".java",
-				//"RemoveLater.java",
+        		o.compile)
+        }
+        for (o : resource.allContents.toIterable.filter(Component)) { 
+        	fsa.generateFile(
+        		o.fullyQualifiedName.toString("/") + ".java",
         		o.compile)
         }
     }
  
-//    override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-//        println("hier")
-//        for (e : resource.allContents.toIterable.filter(Void)) {
-//            fsa.generateFile(
-//                e.fullyQualifiedName.toString("/") + ".java",
-//                e.compile)
-//        }
-//    }
- 
-    def compile(Interface e) ''' //war "dispatch" und auskommentiert - warum?
+    def compile(Interface e) '''
         «IF e.eContainer.fullyQualifiedName !== null»
-            package «e.eContainer.fullyQualifiedName»;
+            // package «e.eContainer.fullyQualifiedName»;
+            
         «ENDIF»
-        
         public interface «e.name» 
         {
             «FOR f : e.signature»
@@ -59,9 +57,18 @@ class Blatt1Generator implements IGenerator {
     '''
  
     def compile(Signature s) '''
-	public «s.returnType.compile» «s.name»(«FOR p : s.parameterType»«IF !p.toString().contains("Void")»«p.compile»«ENDIF»«ENDFOR») {
-		// TODO: Insert code here
-	}
+		public «s.returnType.compile» «s.name»(«s.parameterType.compile»);
+	'''
+	
+	def compile(EList<Type> l) '''
+		«FOR p : l»
+			«IF !p.toString().contains("Void")»
+				«p.compile»
+			«ENDIF»
+			«IF p != l.last»
+				,
+			«ENDIF»
+		«ENDFOR»
 	'''
     
     def compile(Type m) '''«IF m.toString().contains("Void")»void«ENDIF»'''
@@ -71,56 +78,68 @@ class Blatt1Generator implements IGenerator {
     	voidS
     '''
     
+    def compileForComponent(EList<Interface> l)
+    	'''«FOR pi : l»«pi.name»«IF pi != l.last», «ENDIF»«ENDFOR»'''
+
     def compile(Component c) '''
-    	«IF c.eContainer.fullyQualifiedName !== null»
-	        package «c.eContainer.fullyQualifiedName»;
-        «ENDIF»
-    	public class «c.name» implements
-    	«FOR pi : c.providedInterface» //loop for all implemented Interfaces
-    		«pi.name»
-			«IF pi != c.providedInterface.last»
-			,
-			«ENDIF»
+		// package «c.name»;
+		
+       	«FOR pi : c.providedInterface»
+		// import «pi.name»;
 		«ENDFOR»
-    	{
-    		«««//überflüssig: wurde zuvor schon generiert - stattdessen methodenrümpfe für interfaces generieren
-			«««»»«FOR pi : c.providedInterface»
-			«««»	«pi.compile»
-			«««»«ENDFOR
-			«««»»«FOR ri : c.requiredInterface»
-			«««»	«ri.compile»
-			«««»«ENDFOR»
-			«FOR pi : c.providedInterface» «««TODO WARNING was für provided, was für required? siehe Aufgabe 4 B
-				«««»»//«pi.name»
-				«FOR s : pi.signature»
-					//«pi.name»
-					@Override
-					public «s.returnType» «s.name» (
-					«FOR p : s.parameterType» //loop for all parameters of the method
-			    		«««»«p.name» TODO catch this somehow, also define a unique name
-			    		«««»«s.parameterType.index(p)» irgend sowas für eindeutigen namen für parameter?
-						«IF p != s.parameterType.last»
-						,
-						«ENDIF»
-					«ENDFOR»
-				«ENDFOR»
+       	«FOR ri : c.requiredInterface»
+		// import «ri.name»;
+		«ENDFOR»
+		// import Helper;
+        
+		public class «c.name» implements «c.providedInterface.compileForComponent» {
+			
+			«c.requiredInterface.compileForComponentRequired»
+			«c.providedInterface.compileForComponentProvided("TODO")»
+		}
+«««		«FOR ps : c.providedService»
+«««				«ps.compile»
+«««			«ENDFOR»
+«««			
+«««			«FOR rs : c.requiredService»
+«««				«rs.compile»
+«««			«ENDFOR»
+«««			«c.behaviourDescription.compile»
+    '''
+	
+	def compileForComponent(Signature s) '''
+	public «s.returnType.compile» «s.name»(«s.parameterType.compile») {
+		// TODO: Insert code here
+	}
+	'''
+    
+    def compileForComponentProvided(EList<Interface> l, String reqVar) '''
+		«FOR pi : l» «««TODO WARNING was für provided, was für required? siehe Aufgabe 4 B
+			«««»»//«pi.name»
+			«FOR s : pi.signature»
+				// Implementing «s.name» from interface «pi.name»
+				@Override
+				public «s.returnType.compile» «s.name»(«s.parameterType.compile») {
+					// Helper.assertNotNull(this.«reqVar»);
+					// TODO: Insert code here
+				}
+				
 			«ENDFOR»
-			«FOR ri : c.requiredInterface»
-				//«ri.name»
-				«FOR s : ri.signature»
-					«s.returnType» «s.name»;
-					public set«s.name» ( «s.returnType» «s.name»){ this.«s.name» = «s.name»;}
-				«ENDFOR»
-			«ENDFOR»
-			«FOR ps : c.providedService»
-				«ps.compile»
-			«ENDFOR»
-			«FOR rs : c.requiredService»
-				«rs.compile»
-			«ENDFOR»
-			«c.behaviourDescription.compile»
-    	}
-    	System.out.println("Component");
+		«ENDFOR»
+    '''
+    
+    def compileForComponentRequired(EList<Interface> l) '''
+		«FOR ri : l»
+			«ri.name» «ri.name.toFirstLower»;
+		«ENDFOR»
+		
+		«FOR ri : l»
+			public void set«ri.name»(«ri.name» «ri.name.toFirstLower»){ 
+				// Helper.assertNull(this.«ri.name.toFirstLower»);
+				this.«ri.name.toFirstLower» = «ri.name.toFirstLower»;
+			}
+			
+		«ENDFOR»
     '''
     
     def compile(Service s) '''
