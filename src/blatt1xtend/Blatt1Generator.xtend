@@ -274,12 +274,8 @@ class Blatt1Generator implements IGenerator {
         «ENDIF»
     	public class AllocationContext
     	{
-    		«FOR tc : a.targetContainer»
-				«tc.compile»
-			«ENDFOR»
-			«FOR ac : a.allocatedAssemblyContext»
-				«ac.compile»
-			«ENDFOR»
+			«a.targetContainer.compile»
+			«a.allocatedAssemblyContext.compile»
     	}
     '''
     
